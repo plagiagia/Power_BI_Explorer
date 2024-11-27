@@ -111,6 +111,20 @@ def find_similar_chunks(query_text: str, model_id: int, limit: int = 5) -> List[
     
     return [chunk.content_chunk for chunk in similar_chunks]
 
+def get_completion(query: str, context: List[str]) -> str:
+    """Get completion from OpenAI GPT model"""
+    messages = [
+        {"role": "system", "content": "You are a Power BI data analysis assistant. Use the provided context to answer queries about the Power BI model. Return responses in JSON format with 'explanation', 'chart_type', and 'data_suggestion' fields."},
+        {"role": "user", "content": f"Context:\n{chr(10).join(context)}\n\nQuery: {query}"}
+    ]
+    
+    response = openai.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=messages,
+        temperature=0
+    )
+    return response.choices[0].message.content
+
 def process_query(query_text: str) -> Dict:
     """Process natural language query against the Power BI model structure"""
     try:
@@ -136,15 +150,33 @@ def process_query(query_text: str) -> Dict:
             if any(chunk for chunk in similar_chunks if dax_ctx['expression'] in chunk):
                 relevant_measures.append(dax_ctx)
         
-        # Generate response with enhanced context
+        # Generate response using GPT
+        gpt_response = get_completion(
+            query_text,
+            similar_chunks + [
+                f"Measure {i}: {m['expression']}" 
+                for i, m in enumerate(relevant_measures, 1)
+            ]
+        )
+        
+        try:
+            gpt_data = json.loads(gpt_response)
+        except json.JSONDecodeError:
+            gpt_data = {
+                'explanation': gpt_response,
+                'chart_type': 'bar',
+                'data_suggestion': None
+            }
+        
+        # Format response with actual model context
         response = {
             'type': 'data',
             'result': {
-                'values': [120, 150, 180, 210, 240],  # Placeholder data
-                'labels': ['Q1', 'Q2', 'Q3', 'Q4', 'Q5'],
-                'chart_type': 'bar'
+                'values': [float(x) for x in gpt_data.get('data_suggestion', [0, 0, 0, 0, 0])],
+                'labels': [str(x) for x in range(len(gpt_data.get('data_suggestion', [0, 0, 0, 0, 0])))],
+                'chart_type': gpt_data.get('chart_type', 'bar')
             },
-            'explanation': f"Analysis based on {len(relevant_measures)} relevant measures",
+            'explanation': gpt_data.get('explanation', 'Analysis based on available measures'),
             'context': {
                 'measures': relevant_measures,
                 'relationships': [rel for rel in context['relationships'] 
