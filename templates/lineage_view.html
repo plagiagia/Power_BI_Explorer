@@ -1,0 +1,67 @@
+<!-- templates/lineage_view.html -->
+{% extends "base.html" %}
+
+{% block title %}Data Lineage Diagram{% endblock %}
+
+{% block head %}
+    <!-- Include Vis Network CSS -->
+    <link href="https://unpkg.com/vis-network@9.1.2/styles/vis-network.min.css" rel="stylesheet" type="text/css" />
+    <!-- Include Prism CSS (optional, if needed for code highlighting) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism.min.css" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+    <h1>Measure Dependencies Diagram</h1>
+
+    <div class="slicer">
+        <label for="measureSelect">Select a Measure:</label>
+        <select id="measureSelect">
+            <option value="">All Measures</option>
+            <!-- Options will be populated dynamically -->
+        </select>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color-box" style="background-color: #f1c83b;"></div>
+            <div class="legend-text">Parent Measure</div>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color-box" style="background-color: #23c4a7;"></div>
+            <div class="legend-text">Final Measure</div>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color-box" style="background-color: #ADD8E6;"></div>
+            <div class="legend-text">Column Node</div>
+        </div>
+    </div>
+
+    <div id="mynetwork" style="width: 100%; height: 600px; border: 1px solid lightgray;"></div>
+
+    <!-- Table to display lineage data -->
+    <table id="lineageTable" class="lineage-table">
+        <thead>
+            <tr>
+                <th>Parent Measure</th>
+                <th>Child Measure</th>
+                <th>Column</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data rows will be inserted here by JavaScript -->
+        </tbody>
+    </table>
+{% endblock %}
+
+{% block scripts %}
+    <!-- Include Vis Network JS -->
+    <script src="https://unpkg.com/vis-network@9.1.2/standalone/umd/vis-network.min.js"></script>
+    <!-- Data for the network diagram -->
+    <script>
+        // Declare the nodes and edges data for the network diagram
+        const nodesArray = {{ nodes | tojson | safe }};
+        const edgesArray = {{ edges | tojson | safe }};
+    </script>
+    <!-- Include your custom JavaScript for the lineage view -->
+    <script src="{{ url_for('static', filename='lineage_view.js') }}"></script>
+{% endblock %}
