@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Power BI Visuals Explorer{% endblock %}</title>
+    <!-- Include CSS files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <div class="navbar">
+        <a href="/" class="active">Home</a>
+        <a href="/table-view">Visual Fields Table</a>
+        <a href="/lineage-view">Data Lineage Diagram</a>
+        <a href="/dax-expressions">DAX Explorer</a>
+        <a href="/source-explorer">Source Explorer</a>
+        <a href="/unused-measures">Unused Measures</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        &copy; {{ current_year }} Your Company Name
+    </div>
+
+    <!-- Include JS files -->
+    {% block scripts %}{% endblock %}
+</body>
+</html>

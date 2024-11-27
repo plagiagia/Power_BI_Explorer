@@ -1,0 +1,66 @@
+<!-- templates/source_explorer.html -->
+{% extends "base.html" %}
+
+{% block title %}Source Explorer{% endblock %}
+
+{% block head %}
+    <!-- Include Prism.js CSS for syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/themes/prism.min.css">
+    <!-- Include FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+    <h1>Source Explorer</h1>
+    <p>Explore the M queries that form the foundation of your report's data sources.</p>
+
+    <!-- M Queries Table -->
+    <div class="code-table-container">
+        <table class="code-table">
+            <thead>
+                <tr>
+                    <th>Query Name</th>
+                    <th>M Query</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for query in m_queries_info %}
+                <tr>
+                    <td>{{ query.table_name }}</td>
+                    <td>
+                        <div class="code-container">
+                            <pre><code class="language-powerquery">{{ query.m_query }}</code></pre>
+                            <button class="copy-button" onclick="copyToClipboard(this)"><i class="fas fa-copy"></i> Copy</button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <!-- Include Prism.js for syntax highlighting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/prism.min.js"></script>
+    <!-- Include Prism.js Power Query component -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/components/prism-powerquery.min.js"></script>
+    <!-- Include FontAwesome for icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+    <!-- JavaScript function to copy M query to clipboard -->
+    <script>
+        function copyToClipboard(button) {
+            var codeElement = button.parentElement.querySelector('code');
+            var textArea = document.createElement('textarea');
+            textArea.value = codeElement.textContent;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            button.innerHTML = '<i class="fas fa-check"></i> Copied';
+            setTimeout(function () {
+                button.innerHTML = '<i class="fas fa-copy"></i> Copy';
+            }, 2000);
+        }
+    </script>
+{% endblock %}
