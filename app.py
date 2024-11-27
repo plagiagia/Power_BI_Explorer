@@ -36,7 +36,10 @@ def get_data_processor():
 def get_lineage_view_processor():
     if 'lineage_view_processor' not in g:
         if os.path.exists(MEASURE_DEPENDENCIES_TSV_PATH):
-            g.lineage_view_processor = LineageView(MEASURE_DEPENDENCIES_TSV_PATH)
+            lineage_processor = LineageView()
+            lineage_processor.tsv_file_path = MEASURE_DEPENDENCIES_TSV_PATH
+            lineage_processor.process_lineage_data()
+            g.lineage_view_processor = lineage_processor
         else:
             g.lineage_view_processor = None
     return g.lineage_view_processor
