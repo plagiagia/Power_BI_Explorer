@@ -1,0 +1,5 @@
+Measure	DAX Expression	Parent Measures	Child Measures	Table	Columns
+TotalSales	SUM(Sales[Amount])			Sales	Amount
+ProfitMargin	DIVIDE([TotalSales] - [TotalCost], [TotalSales])	TotalSales; TotalCost		Sales	
+TotalCost	SUM(Sales[Cost])			Sales	Cost
+YOYGrowth	CALCULATE([TotalSales], SAMEPERIODLASTYEAR(Calendar[Date])) / [TotalSales] - 1	TotalSales		Sales	Date

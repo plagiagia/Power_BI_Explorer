@@ -1,29 +1,38 @@
-# app.py
 import os
-from flask import Flask, render_template, g
-from data_processor import DataProcessor
-from lineage_view import LineageView
+from flask import Flask, render_template, g, request, jsonify
+from utils.powerbi_parser import DataProcessor
+from utils.lineage_view import LineageView
+from utils.database import db
+from models import PowerBIModel, Query, FileEmbedding
 import json
 import re
 
 app = Flask(__name__)
 
+# Configure database
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
+
 # Define paths relative to the project root
-REPORT_JSON_PATH = os.path.join('data', 'D:\GitHub\Personal\GPT_Projects\WebAPP\\report.json')
-MEASURE_DEPENDENCIES_TSV_PATH = os.path.join('data', 'D:\GitHub\Personal\GPT_Projects\WebAPP\MeasureDependencies.tsv')
-MODEL_JSON_PATH = os.path.join('data', 'D:\GitHub\Personal\GPT_Projects\WebAPP\model.json')
+DATA_DIR = os.path.join(os.getcwd(), 'data')
+REPORT_JSON_PATH = os.path.join(DATA_DIR, 'report.json')
+MEASURE_DEPENDENCIES_TSV_PATH = os.path.join(DATA_DIR, 'MeasureDependencies.tsv')
+MODEL_JSON_PATH = os.path.join(DATA_DIR, 'model.json')
 
 def get_data_processor():
     if 'data_processor' not in g:
-        data_processor = DataProcessor(REPORT_JSON_PATH)
-        data_processor.process_json()
+        data_processor = DataProcessor()
+        if os.path.exists(REPORT_JSON_PATH):
+            data_processor.process_json()
         g.data_processor = data_processor
     return g.data_processor
 
 def get_lineage_view_processor():
     if 'lineage_view_processor' not in g:
-        lineage_view_processor = LineageView(MEASURE_DEPENDENCIES_TSV_PATH)
-        lineage_view_processor.process_lineage_data()
+        lineage_view_processor = LineageView()
+        if os.path.exists(MEASURE_DEPENDENCIES_TSV_PATH):
+            lineage_view_processor.process_lineage_data()
         g.lineage_view_processor = lineage_view_processor
     return g.lineage_view_processor
 
@@ -35,6 +44,31 @@ def teardown(exception):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/upload', methods=['POST'])
+def upload():
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'error': 'No file uploaded'})
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'success': False, 'error': 'No file selected'})
+    
+    content = file.read().decode('utf-8')
+    
+    try:
+        # Save the file content
+        os.makedirs(DATA_DIR, exist_ok=True)
+        with open(REPORT_JSON_PATH, 'w', encoding='utf-8') as f:
+            f.write(content)
+        
+        # Process the data
+        data_processor = get_data_processor()
+        data_processor.process_json()
+        
+        return jsonify({'success': True, 'data': {'message': 'File uploaded successfully'}})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/table-view')
 def table_view():
@@ -59,6 +93,12 @@ def dax_expressions():
 @app.route('/source-explorer')
 def source_explorer():
     try:
+        if not os.path.exists(MODEL_JSON_PATH):
+            return render_template('source_explorer.html', 
+                                nodes=[], 
+                                edges=[], 
+                                m_queries_info=[])
+        
         with open(MODEL_JSON_PATH, 'r', encoding='utf-8') as file:
             data = json.load(file)
     except (json.JSONDecodeError, IOError) as e:
@@ -67,7 +107,6 @@ def source_explorer():
 
     tables = data.get('model', {}).get('tables', [])
     expressions = data.get('model', {}).get('expressions', [])
-
     m_queries_info = []
 
     def starts_with_let(query):
@@ -133,4 +172,6 @@ def unused_measures_view():
     return render_template('unused_measures.html', unused_measures=unused_measures or [])
 
 if __name__ == '__main__':
-    app.run(debug=app.config['DEBUG'])
+    with app.app_context():
+        db.create_all()
+    app.run(host='0.0.0.0', port=5000)

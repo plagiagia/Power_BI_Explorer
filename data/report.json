@@ -1,0 +1,38 @@
+{
+  "name": "Sample Power BI Report",
+  "sections": [
+    {
+      "displayName": "Overview",
+      "filters": "[]",
+      "visualContainers": [
+        {
+          "config": {
+            "visual1": {
+              "visualType": "columnChart",
+              "name": "Sales by Region",
+              "prototypeQuery": {
+                "From": [
+                  {"Name": "s", "Entity": "Sales"}
+                ],
+                "Select": [
+                  {
+                    "Column": {
+                      "Expression": {"SourceRef": {"Source": "s"}},
+                      "Property": "Region"
+                    }
+                  },
+                  {
+                    "Measure": {
+                      "Expression": {"SourceRef": {"Source": "s"}},
+                      "Property": "TotalSales"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

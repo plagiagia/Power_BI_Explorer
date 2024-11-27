@@ -1,0 +1,27 @@
+{
+  "name": "Sample Power BI Model",
+  "model": {
+    "tables": [
+      {
+        "name": "Sales",
+        "partitions": [
+          {
+            "name": "Sales",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Excel.Workbook(File.Contents(\"Sales.xlsx\"), null, true),",
+                "    Sales_Table = Source{[Item=\"Sales\",Kind=\"Table\"]}[Data],",
+                "    #\"Changed Type\" = Table.TransformColumnTypes(Sales_Table,{{\"Date\", type date}, {\"Amount\", type number}, {\"Cost\", type number}})",
+                "in",
+                "    #\"Changed Type\""
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "expressions": []
+  }
+}
