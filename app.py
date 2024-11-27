@@ -63,19 +63,65 @@ def upload():
         return jsonify({'success': False, 'error': 'No file selected'})
     
     content = file.read().decode('utf-8')
+    file_type = os.path.splitext(file.filename)[1].lower()
+    target_path = None
     
     try:
-        # Save the file content
+        # Determine target path based on file type
+        if file_type == '.json':
+            target_path = REPORT_JSON_PATH if 'report' in file.filename.lower() else MODEL_JSON_PATH
+        elif file_type == '.tsv':
+            target_path = MEASURE_DEPENDENCIES_TSV_PATH
+        elif file_type == '.bim':
+            target_path = MODEL_JSON_PATH
+        else:
+            return jsonify({'success': False, 'error': 'Unsupported file type'})
+
+        # Create data directory if it doesn't exist
         os.makedirs(DATA_DIR, exist_ok=True)
-        with open(REPORT_JSON_PATH, 'w', encoding='utf-8') as f:
+
+        # Remove existing file if it exists
+        if os.path.exists(target_path):
+            os.remove(target_path)
+
+        # Save new file
+        with open(target_path, 'w', encoding='utf-8') as f:
             f.write(content)
+
+        # Update or create database record
+        try:
+            existing_model = PowerBIModel.query.filter_by(name=file.filename).first()
+            if existing_model:
+                existing_model.content = content
+                existing_model.created_at = db.func.current_timestamp()
+            else:
+                new_model = PowerBIModel(name=file.filename, content=content)
+                db.session.add(new_model)
+            db.session.commit()
+        except Exception as db_error:
+            app.logger.error(f"Database error: {str(db_error)}")
+            return jsonify({'success': False, 'error': f'Database error: {str(db_error)}'})
+
+        # Clear cached data
+        if 'data_processor' in g:
+            g.pop('data_processor', None)
+        if 'lineage_view_processor' in g:
+            g.pop('lineage_view_processor', None)
+
+        # Process the data with new processor instance
+        data_processor = DataProcessor()
+        if target_path == REPORT_JSON_PATH:
+            data_processor.json_file_path = target_path
+            data_processor.process_json()
         
-        # Process the data
-        data_processor = get_data_processor()
-        data_processor.process_json()
-        
-        return jsonify({'success': True, 'data': {'message': 'File uploaded successfully'}})
+        return jsonify({'success': True, 'data': {'message': 'File uploaded and processed successfully'}})
     except Exception as e:
+        app.logger.error(f"Error processing upload: {str(e)}")
+        if target_path and os.path.exists(target_path):
+            try:
+                os.remove(target_path)
+            except Exception as cleanup_error:
+                app.logger.error(f"Error cleaning up file: {str(cleanup_error)}")
         return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/table-view')
