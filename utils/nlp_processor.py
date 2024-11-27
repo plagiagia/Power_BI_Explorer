@@ -5,6 +5,7 @@ from models import PowerBIModel, Query
 from utils.database import db
 from flask import current_app
 import json
+import os
 
 class QueryProcessor:
     def __init__(self, model_data: Dict):
@@ -12,157 +13,74 @@ class QueryProcessor:
         self.tables = {table['name'].lower(): table for table in model_data.get('tables', [])}
         self.relationships = model_data.get('relationships', [])
         self.measures = model_data.get('measures', [])
-        
-        # Define supported operations
-        self.time_patterns = {
-            'yoy': r'year[\s-]over[\s-]year|yoy',
-            'mom': r'month[\s-]over[\s-]month|mom',
-            'previous_period': r'previous|last|prior\s+(?:period|month|year)',
-            'date_range': r'(?:from|between)\s+(\d{4}-\d{2}-\d{2})\s+(?:to|and)\s+(\d{4}-\d{2}-\d{2})'
-        }
-        
-        self.aggregations = {
-            'sum': 'SUM',
-            'average': 'AVERAGE',
-            'count': 'COUNT',
-            'min': 'MIN',
-            'max': 'MAX'
-        }
-        
-        # Chart type suggestions based on query context
-        self.chart_suggestions = {
-            'time_series': 'line',
-            'comparison': 'bar',
-            'distribution': 'histogram',
-            'correlation': 'scatter',
-            'composition': 'pie',
-            'hierarchy': 'treemap'
-        }
 
-    def extract_entities(self, query_text: str) -> Dict:
-        """Extract relevant entities from the query text with enhanced pattern recognition."""
-        query_text = query_text.lower()
+    def _format_model_structure(self) -> str:
+        """Format model structure for prompt template"""
+        structure = []
+        structure.append("Tables:")
+        for table in self.model_data.get('tables', []):
+            structure.append(f"- {table['name']}")
+            structure.append("  Columns: " + ", ".join(table['columns']))
         
-        entities = {
-            'intent': None,
-            'tables': [],
-            'columns': [],
-            'metrics': [],
-            'time_analysis': None,
-            'grouping': [],
-            'filters': [],
-            'visualization': None
-        }
-        
-        # Extract time-based analysis patterns
-        for time_type, pattern in self.time_patterns.items():
-            if re.search(pattern, query_text):
-                entities['time_analysis'] = time_type
-                break
-        
-        # Extract multiple metrics
-        metric_pattern = r'(?:show|display|calculate)\s+(?:the\s+)?([a-zA-Z\s,]+)\s+(?:for|from|of)'
-        metrics_match = re.search(metric_pattern, query_text)
-        if metrics_match:
-            metrics = metrics_match.group(1).split(',')
-            entities['metrics'] = [m.strip() for m in metrics]
-        
-        # Extract grouping
-        group_pattern = r'group\s+by\s+([a-zA-Z\s,]+)'
-        group_match = re.search(group_pattern, query_text)
-        if group_match:
-            entities['grouping'] = [g.strip() for g in group_match.group(1).split(',')]
-        
-        # Extract visualization preferences
-        viz_pattern = r'(?:show|display|visualize)\s+(?:as|in|using)\s+(?:a\s+)?([a-zA-Z\s]+)(?:\s+chart|\s+graph)?'
-        viz_match = re.search(viz_pattern, query_text)
-        if viz_match:
-            entities['visualization'] = viz_match.group(1).strip()
-        
-        return entities
+        structure.append("\nMeasures:")
+        for measure in self.measures:
+            structure.append(f"- {measure}")
+            
+        return "\n".join(structure)
 
-    def validate_query(self, entities: Dict) -> Optional[str]:
-        """Enhanced query validation with detailed error messages and suggestions."""
-        errors = []
-        suggestions = []
-        
-        # Validate metrics
-        for metric in entities['metrics']:
-            if metric not in self.measures and not any(
-                metric in table['columns'] for table in self.tables.values()
-            ):
-                errors.append(f"Metric '{metric}' not found")
-                similar_metrics = self._find_similar_names(metric, self.measures)
-                if similar_metrics:
-                    suggestions.append(f"Did you mean: {', '.join(similar_metrics)}?")
-        
-        # Validate time analysis
-        if entities['time_analysis']:
-            date_columns = self._find_date_columns()
-            if not date_columns:
-                errors.append("No date columns found for time-based analysis")
-                suggestions.append("Please ensure your model contains date columns")
-        
-        # Validate grouping
-        for group in entities['grouping']:
-            if not any(group in table['columns'] for table in self.tables.values()):
-                errors.append(f"Grouping column '{group}' not found")
-                similar_columns = self._find_similar_names(group, 
-                    [col for table in self.tables.values() for col in table['columns']]
-                )
-                if similar_columns:
-                    suggestions.append(f"Did you mean: {', '.join(similar_columns)}?")
-        
-        if errors:
-            return {
-                'errors': errors,
-                'suggestions': suggestions
+    def analyze_query(self, query_text: str) -> Dict:
+        """Analyze query and extract key information"""
+        try:
+            # Simple query analysis for initial prototype
+            entities = {
+                'intent': 'data_analysis',
+                'metrics': [],
+                'time_analysis': None,
+                'grouping': [],
+                'filters': [],
+                'visualization': 'bar'
             }
-        return None
-
-    def _find_similar_names(self, name: str, options: List[str], threshold: float = 0.6) -> List[str]:
-        """Find similar names using string similarity."""
-        from difflib import SequenceMatcher
-        
-        similar = []
-        for option in options:
-            similarity = SequenceMatcher(None, name.lower(), option.lower()).ratio()
-            if similarity >= threshold:
-                similar.append(option)
-        return similar[:3]  # Return top 3 suggestions
-
-    def _find_date_columns(self) -> List[str]:
-        """Find date columns in the model."""
-        date_columns = []
-        date_patterns = [r'date', r'time', r'year', r'month']
-        
-        for table in self.tables.values():
-            for column in table['columns']:
-                if any(re.search(pattern, column.lower()) for pattern in date_patterns):
-                    date_columns.append(f"{table['name']}.{column}")
-        return date_columns
-
-    def _suggest_visualization(self, entities: Dict) -> str:
-        """Suggest appropriate visualization based on query context."""
-        if entities['time_analysis']:
-            return 'line'
-        elif len(entities['metrics']) > 1:
-            return 'bar'
-        elif entities['grouping']:
-            return 'pie' if len(entities['grouping']) == 1 else 'treemap'
-        return 'bar'  # Default visualization
+            
+            # Extract metrics
+            if 'sales' in query_text.lower():
+                entities['metrics'].append('total_sales')
+            if 'average' in query_text.lower() and 'price' in query_text.lower():
+                entities['metrics'].append('average_price')
+            if 'customer' in query_text.lower():
+                entities['metrics'].append('customer_count')
+                
+            # Detect time analysis
+            if any(term in query_text.lower() for term in ['year', 'month', 'daily']):
+                entities['time_analysis'] = 'trend'
+                
+            # Detect grouping
+            if 'category' in query_text.lower():
+                entities['grouping'].append('category')
+            if 'product' in query_text.lower():
+                entities['grouping'].append('product')
+                
+            # Determine visualization
+            if 'trend' in query_text.lower() or entities['time_analysis']:
+                entities['visualization'] = 'line'
+            elif len(entities['metrics']) > 1:
+                entities['visualization'] = 'bar'
+                
+            return entities
+            
+        except Exception as e:
+            raise Exception(f"Error analyzing query: {str(e)}")
 
     def generate_response(self, entities: Dict) -> Dict:
-        """Generate enhanced response with DAX expressions and appropriate visualizations."""
+        """Generate response based on analyzed entities"""
         try:
-            # Generate DAX expression
-            dax_expression = self._generate_dax_expression(entities)
-            
-            # Mock data generation (in real implementation, this would execute the DAX query)
-            data = self._execute_dax_query(dax_expression)
+            # Mock data generation (in real implementation, this would execute a DAX query)
+            data = {
+                'values': [10, 20, 30, 40, 50],
+                'labels': ['Jan', 'Feb', 'Mar', 'Apr', 'May']
+            }
             
             # Determine visualization type
-            viz_type = entities['visualization'] or self._suggest_visualization(entities)
+            viz_type = entities.get('visualization', 'bar')
             
             return {
                 'type': 'data',
@@ -171,8 +89,8 @@ class QueryProcessor:
                     'labels': data['labels'],
                     'chart_type': viz_type
                 },
-                'explanation': self._generate_explanation(entities, dax_expression),
-                'dax_query': dax_expression
+                'explanation': self._generate_explanation(entities),
+                'intent': entities.get('intent', '')
             }
             
         except Exception as e:
@@ -182,46 +100,19 @@ class QueryProcessor:
                 'suggestions': self._generate_error_suggestions(str(e))
             }
 
-    def _generate_dax_expression(self, entities: Dict) -> str:
-        """Generate DAX expression based on query entities."""
-        # This is a simplified version - in real implementation, this would generate actual DAX
+    def _generate_explanation(self, entities: Dict) -> str:
+        """Generate human-readable explanation of the query and results"""
         parts = []
-        
-        # Add EVALUATE
-        parts.append("EVALUATE")
-        
-        # Add time intelligence if needed
-        if entities['time_analysis']:
-            if entities['time_analysis'] == 'yoy':
-                parts.append("CALCULATETABLE(")
-        
-        # Add measures and columns
-        metrics = ', '.join(entities['metrics']) if entities['metrics'] else '*'
-        parts.append(f"SUMMARIZE({self.tables[0]['name']}, {metrics})")
-        
-        return ' '.join(parts)
-
-    def _execute_dax_query(self, dax_expression: str) -> Dict:
-        """Execute DAX query (mock implementation)."""
-        # In real implementation, this would connect to Power BI and execute the query
-        return {
-            'values': [10, 20, 30, 40, 50],
-            'labels': ['Jan', 'Feb', 'Mar', 'Apr', 'May']
-        }
-
-    def _generate_explanation(self, entities: Dict, dax_query: str) -> str:
-        """Generate human-readable explanation of the query and results."""
-        parts = []
-        if entities['metrics']:
+        if entities.get('metrics'):
             parts.append(f"Showing {', '.join(entities['metrics'])}")
-        if entities['time_analysis']:
+        if entities.get('time_analysis'):
             parts.append(f"with {entities['time_analysis']} analysis")
-        if entities['grouping']:
+        if entities.get('grouping'):
             parts.append(f"grouped by {', '.join(entities['grouping'])}")
         return ' '.join(parts)
 
     def _generate_error_suggestions(self, error_message: str) -> List[str]:
-        """Generate helpful suggestions based on error message."""
+        """Generate helpful suggestions based on error message"""
         suggestions = []
         if 'column not found' in error_message.lower():
             suggestions.append("Check column names and ensure they exist in the model")
@@ -261,17 +152,11 @@ def process_query(query_text: str) -> Dict:
             ]
         }
         
+        # Create query processor
         processor = QueryProcessor(model_data)
-        entities = processor.extract_entities(query_text)
         
-        # Validate the query
-        validation_result = processor.validate_query(entities)
-        if validation_result:
-            return {
-                'type': 'error',
-                'explanation': validation_result['errors'],
-                'suggestions': validation_result['suggestions']
-            }
+        # Analyze query
+        entities = processor.analyze_query(query_text)
         
         # Generate response
         response = processor.generate_response(entities)
