@@ -1,6 +1,6 @@
 import os
 from flask import Flask, render_template, g, request, jsonify
-from utils.powerbi_parser import DataProcessor
+from utils.data_processor import DataProcessor
 from utils.lineage_view import LineageView
 from utils.database import db
 from models import PowerBIModel, Query, FileEmbedding
@@ -25,7 +25,10 @@ MODEL_JSON_PATH = os.path.join(DATA_DIR, 'model.json')
 def get_data_processor():
     if 'data_processor' not in g:
         if os.path.exists(REPORT_JSON_PATH):
-            g.data_processor = DataProcessor(REPORT_JSON_PATH)
+            data_processor = DataProcessor()
+            data_processor.json_file_path = REPORT_JSON_PATH
+            data_processor.process_json()
+            g.data_processor = data_processor
         else:
             g.data_processor = None
     return g.data_processor
