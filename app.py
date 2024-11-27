@@ -3,10 +3,11 @@ from flask import Flask, render_template, request, jsonify
 from utils.database import db
 from utils.nlp_processor import process_query
 from utils.powerbi_parser import parse_bim_file, parse_report_file
+from models import PowerBIModel
 import json
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "default-secret-key")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///powerbi.db")
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
@@ -35,13 +36,23 @@ def upload_file():
     
     if file and allowed_file(file.filename):
         try:
-            content = file.read()
+            content = file.read().decode('utf-8')
             if file.filename.endswith('.bim'):
                 model_data = parse_bim_file(content)
             else:
                 model_data = parse_report_file(content)
+            
+            # Create PowerBIModel instance
+            model = PowerBIModel(
+                name=file.filename,
+                content=json.dumps(model_data)
+            )
+            db.session.add(model)
+            db.session.commit()
+            
             return jsonify({'success': True, 'data': model_data})
         except Exception as e:
+            db.session.rollback()
             return jsonify({'error': str(e)}), 400
     
     return jsonify({'error': 'Invalid file type'}), 400
@@ -59,5 +70,4 @@ def process_natural_language_query():
         return jsonify({'error': str(e)}), 400
 
 with app.app_context():
-    import models
     db.create_all()

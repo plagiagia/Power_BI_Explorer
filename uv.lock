@@ -761,6 +761,18 @@ wheels = [
 ]
 
 [[package]]
+name = "pgvector"
+version = "0.3.6"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/7d/d8/fd6009cee3e03214667df488cdcf9609461d729968da94e4f95d6359d304/pgvector-0.3.6.tar.gz", hash = "sha256:31d01690e6ea26cea8a633cde5f0f55f5b246d9c8292d68efdef8c22ec994ade", size = 25421 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fb/81/f457d6d361e04d061bef413749a6e1ab04d98cfeec6d8abcfe40184750f3/pgvector-0.3.6-py3-none-any.whl", hash = "sha256:f6c269b3c110ccb7496bac87202148ed18f34b390a0189c783e351062400a75a", size = 24880 },
+]
+
+[[package]]
 name = "preshed"
 version = "3.0.9"
 source = { registry = "https://pypi.org/simple" }
@@ -1000,6 +1012,7 @@ dependencies = [
     { name = "langchain-core" },
     { name = "langchain-openai" },
     { name = "openai" },
+    { name = "pgvector" },
     { name = "psycopg2-binary" },
     { name = "pydantic" },
     { name = "spacy" },
@@ -1014,6 +1027,7 @@ requires-dist = [
     { name = "langchain-core", specifier = ">=0.3.21" },
     { name = "langchain-openai", specifier = ">=0.2.10" },
     { name = "openai", specifier = ">=1.55.2" },
+    { name = "pgvector", specifier = ">=0.3.6" },
     { name = "psycopg2-binary", specifier = ">=2.9.10" },
     { name = "pydantic", specifier = ">=2.10.2" },
     { name = "spacy", specifier = ">=3.8.2" },
