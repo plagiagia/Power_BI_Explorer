@@ -1,5 +1,5 @@
-from app import db
 from datetime import datetime
+from utils.database import db
 
 class PowerBIModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
