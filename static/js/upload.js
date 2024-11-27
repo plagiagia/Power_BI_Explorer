@@ -1,23 +1,15 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const uploadArea = document.querySelector('.upload-area');
-    const fileInput = document.querySelector('#file-input');
-
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, preventDefaults, false);
-    });
+    const uploadArea = document.getElementById('upload-area');
+    const fileInput = document.getElementById('file-input');
+    const uploadProgress = document.getElementById('upload-progress');
+    const progressBar = uploadProgress.querySelector('.progress-bar');
+    const progressText = uploadProgress.querySelector('.progress-text');
+    const uploadStatus = document.getElementById('upload-status');
 
     function preventDefaults(e) {
         e.preventDefault();
         e.stopPropagation();
     }
-
-    ['dragenter', 'dragover'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, highlight, false);
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, unhighlight, false);
-    });
 
     function highlight() {
         uploadArea.classList.add('highlight');
@@ -27,88 +19,90 @@ document.addEventListener('DOMContentLoaded', function() {
         uploadArea.classList.remove('highlight');
     }
 
-    uploadArea.addEventListener('drop', handleDrop, false);
-    fileInput.addEventListener('change', handleFileSelect, false);
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, preventDefaults, false);
+    });
 
-    function handleDrop(e) {
-        const dt = e.dataTransfer;
-        const files = dt.files;
-        handleFiles(files);
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, unhighlight, false);
+    });
+
+    function validateFile(file) {
+        const allowedTypes = ['.bim', '.json', '.tsv'];
+        const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+        return allowedTypes.includes(fileExtension);
     }
 
-    function handleFileSelect(e) {
-        const files = e.target.files;
-        handleFiles(files);
+    function showProgress(show = true) {
+        uploadProgress.style.display = show ? 'block' : 'none';
+    }
+
+    function updateProgress(percent) {
+        progressBar.style.width = `${percent}%`;
+        progressText.textContent = `${Math.round(percent)}%`;
+    }
+
+    function showStatus(message, isError = false) {
+        uploadStatus.textContent = message;
+        uploadStatus.className = 'upload-status ' + (isError ? 'error' : 'success');
+        uploadStatus.style.display = 'block';
+        setTimeout(() => {
+            uploadStatus.style.display = 'none';
+        }, 5000);
     }
 
     async function handleFiles(files) {
-        const file = files[0];
-        if (!file) return;
-
-        if (!file.name.endsWith('.bim') && !file.name.endsWith('.json')) {
-            alert('Please upload a .bim or report.json file');
+        const validFiles = Array.from(files).filter(validateFile);
+        
+        if (validFiles.length === 0) {
+            showStatus('Please upload only .bim, .json, or .tsv files', true);
             return;
         }
 
-        const formData = new FormData();
-        formData.append('file', file);
+        showProgress();
+        updateProgress(0);
 
-        try {
-            const response = await fetch('/upload', {
-                method: 'POST',
-                body: formData
-            });
+        for (let i = 0; i < validFiles.length; i++) {
+            const file = validFiles[i];
+            const formData = new FormData();
+            formData.append('file', file);
 
-            const result = await response.json();
-            if (result.success) {
-                displayFileContent(result.data);
-            } else {
-                alert('Error: ' + result.error);
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                const progressPercent = ((i + 1) / validFiles.length) * 100;
+                updateProgress(progressPercent);
+
+                if (result.success) {
+                    showStatus(`${file.name} uploaded successfully`);
+                } else {
+                    showStatus(`Error uploading ${file.name}: ${result.error}`, true);
+                }
+            } catch (error) {
+                showStatus(`Error uploading ${file.name}: ${error.message}`, true);
             }
-        } catch (error) {
-            alert('Error uploading file: ' + error.message);
-        }
-    }
-
-    function displayFileContent(data) {
-        const contentArea = document.querySelector('#file-content');
-        contentArea.innerHTML = '';
-
-        const card = document.createElement('div');
-        card.classList.add('data-card');
-
-        if (data.tables) {
-            // Display .bim file content
-            const tablesList = data.tables.map(table => `
-                <div class="mb-3">
-                    <h5>${table.name}</h5>
-                    <p>Columns: ${table.columns.join(', ')}</p>
-                </div>
-            `).join('');
-
-            card.innerHTML = `
-                <h4>Model Structure</h4>
-                <div class="tables-container">
-                    ${tablesList}
-                </div>
-            `;
-        } else if (data.pages) {
-            // Display report.json content
-            const pagesList = data.pages.map(page => `
-                <div class="mb-3">
-                    <h5>${page.name}</h5>
-                    <p>Visualizations: ${page.visuals.join(', ')}</p>
-                </div>
-            `).join('');
-
-            card.innerHTML = `
-                <h4>Report Structure</h4>
-                <div class="pages-container">
-                    ${pagesList}
-                </div>
-            `;
         }
 
-        contentArea.appendChild(card);
+        setTimeout(() => {
+            showProgress(false);
+        }, 1000);
     }
+
+    uploadArea.addEventListener('drop', function(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleFiles(files);
+    });
+
+    fileInput.addEventListener('change', function() {
+        handleFiles(this.files);
+    });
 });
