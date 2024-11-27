@@ -23,15 +23,19 @@ class LineageView:
         if tsv_file_path:
             self.process_lineage_data()
 
-    def process_lineage_data(self) -> None:
-        """Processes the TSV file to extract nodes and edges for the lineage graph."""
-        try:
-            with open(self.tsv_file_path, 'r', encoding='utf-8') as file:
-                reader = csv.reader(file, delimiter='\t')
-                next(reader)  # Skip the header row
-                data = list(reader)
-        except IOError as e:
-            logger.error(f"Error reading the TSV file: {e}")
+    def process_lineage_data(self, data: Optional[List[List[str]]] = None) -> None:
+        """Processes the lineage data to extract nodes and edges for the lineage graph."""
+        if data is None and self.tsv_file_path:
+            try:
+                with open(self.tsv_file_path, 'r', encoding='utf-8') as file:
+                    reader = csv.reader(file, delimiter='\t')
+                    next(reader)  # Skip the header row
+                    data = list(reader)
+            except IOError as e:
+                logger.error(f"Error reading the TSV file: {e}")
+                return
+        elif data is None:
+            logger.error("No data provided and no TSV file path set")
             return
 
         for measure in data:

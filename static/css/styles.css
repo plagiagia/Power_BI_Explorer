@@ -40,3 +40,7 @@
 #uploadStatus.error {
     color: #f44336;
 }
+
+#uploadStatus.info {
+    color: #2196F3;
+}

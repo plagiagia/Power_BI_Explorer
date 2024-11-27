@@ -12,17 +12,12 @@ class DataProcessor:
         self.visuals_data: List[List[str]] = []
         self.data: Dict[str, Any] = {}
 
-    def process_json(self) -> None:
-        """Processes the JSON file and extracts data into visuals_data."""
-        if not self.json_file_path:
-            logger.error("JSON file path not set")
-            return
-
+    def process_json(self, content: str) -> None:
+        """Processes the JSON content and extracts data into visuals_data."""
         try:
-            with open(self.json_file_path, 'r', encoding='utf-8') as file:
-                self.data = json.load(file)
-        except (json.JSONDecodeError, IOError) as e:
-            logger.error(f"Error reading or parsing the JSON file: {e}")
+            self.data = json.loads(content)
+        except json.JSONDecodeError as e:
+            logger.error(f"Error parsing the JSON content: {e}")
             return
 
         filters_str = self.data.get('filters', '[]')

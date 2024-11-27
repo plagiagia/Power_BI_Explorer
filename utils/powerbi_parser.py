@@ -1,4 +1,52 @@
 import json
+import logging
+from typing import Dict, List, Optional
+
+logger = logging.getLogger(__name__)
+
+class PowerBIParser:
+    def __init__(self):
+        self.m_queries = []
+
+    def extract_m_queries(self, content: str) -> List[Dict[str, str]]:
+        """Extract M queries from model data"""
+        try:
+            data = json.loads(content)
+            if 'model' not in data:
+                return []
+
+            for table in data['model'].get('tables', []):
+                for partition in table.get('partitions', []):
+                    source = partition.get('source', {})
+                    if source.get('type') == 'm':
+                        m_query = '\n'.join(source.get('expression', []))
+                        if m_query.strip().lower().startswith('let'):
+                            self.m_queries.append({
+                                'table_name': table['name'],
+                                'query': m_query,
+                                'type': 'table_source'
+                            })
+
+            # Extract M expressions
+            for expression in data['model'].get('expressions', []):
+                if expression.get('kind') == 'm':
+                    m_query = '\n'.join(expression.get('expression', []))
+                    if m_query.strip().lower().startswith('let'):
+                        self.m_queries.append({
+                            'name': expression['name'],
+                            'query': m_query,
+                            'type': 'expression'
+                        })
+
+            return self.m_queries
+        except json.JSONDecodeError as e:
+            logger.error(f"Error parsing JSON content: {e}")
+            return []
+        except Exception as e:
+            logger.error(f"Unexpected error processing model data: {e}")
+            return []
+
+import json
 import re
 from typing import Dict, List, Optional, Tuple
 from .lineage_view import LineageView
@@ -10,34 +58,12 @@ class DataProcessor:
         self.measures = []
         self.m_queries = []
         self.lineage_view = LineageView()
+        self.powerbi_parser = PowerBIParser()
+
 
     def _extract_m_queries(self, data: Dict) -> None:
-        """Extract M queries from model data"""
-        if 'model' not in data:
-            return
-
-        for table in data['model'].get('tables', []):
-            for partition in table.get('partitions', []):
-                source = partition.get('source', {})
-                if source.get('type') == 'm':
-                    m_query = '\n'.join(source.get('expression', []))
-                    if m_query.strip().lower().startswith('let'):
-                        self.m_queries.append({
-                            'table_name': table['name'],
-                            'query': m_query,
-                            'type': 'table_source'
-                        })
-
-        # Extract M expressions
-        for expression in data['model'].get('expressions', []):
-            if expression.get('kind') == 'm':
-                m_query = '\n'.join(expression.get('expression', []))
-                if m_query.strip().lower().startswith('let'):
-                    self.m_queries.append({
-                        'name': expression['name'],
-                        'query': m_query,
-                        'type': 'expression'
-                    })
+        """Extract M queries from model data - DEPRECATED. Use PowerBIParser instead"""
+        pass # This method is now deprecated
 
     def parse_bim_file(self, content: str) -> Dict:
         """
@@ -94,9 +120,8 @@ class DataProcessor:
                 # Process model data for lineage tracking
                 self.lineage_view.process_model_data(data)
                 
-                # Extract M queries
-                self._extract_m_queries(data)
-                model['m_queries'] = self.m_queries
+                # Extract M queries using the new parser
+                model['m_queries'] = self.powerbi_parser.extract_m_queries(content)
 
             return model
         except Exception as e:

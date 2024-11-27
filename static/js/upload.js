@@ -5,6 +5,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     uploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        uploadStatus.textContent = 'Uploading...';
+        uploadStatus.className = 'info';
+        
         const formData = new FormData();
         formData.append('file', fileInput.files[0]);
 
@@ -16,8 +19,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
             
             if (result.success) {
-                uploadStatus.textContent = 'File uploaded successfully!';
+                uploadStatus.textContent = result.message;
                 uploadStatus.className = 'success';
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
             } else {
                 uploadStatus.textContent = result.error || 'Upload failed';
                 uploadStatus.className = 'error';
