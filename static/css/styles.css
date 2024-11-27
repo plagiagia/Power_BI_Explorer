@@ -6,34 +6,13 @@
     --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Base styles */
 body {
     font-family: 'Segoe UI', sans-serif;
-    margin: 0;
-    padding: 0;
     background-color: var(--background-color);
     color: var(--text-color);
-}
-
-.navbar {
-    background-color: var(--primary-color);
-    padding: 1rem;
-    box-shadow: var(--shadow);
-}
-
-.navbar a {
-    color: white;
-    text-decoration: none;
-    padding: 0.5rem 1rem;
-    margin: 0 0.5rem;
-    border-radius: 4px;
-}
-
-.navbar a:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.navbar a.active {
-    background-color: rgba(255, 255, 255, 0.2);
+    margin: 0;
+    padding: 0;
 }
 
 .container {
@@ -42,154 +21,26 @@ body {
     padding: 2rem;
 }
 
-.card-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    padding: 2rem 0;
-}
-
-.card {
-    background-color: white;
-    border-radius: 8px;
-    padding: 1.5rem;
+/* Navigation */
+.navbar {
+    background-color: var(--primary-color);
     box-shadow: var(--shadow);
-    transition: transform 0.2s ease;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-}
-
-.card h2 {
-    color: var(--primary-color);
-    margin-top: 0;
-}
-
-.button {
-    display: inline-block;
-    background-color: var(--primary-color);
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    text-decoration: none;
-    transition: background-color 0.2s ease;
-}
-
-.button:hover {
-    background-color: var(--secondary-color);
-}
-
-.button-back {
-    background-color: #6c757d;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-bottom: 1rem;
-}
-
-.button-back:hover {
-    background-color: #5a6268;
-}
-
-.footer {
-    background-color: var(--primary-color);
-    color: white;
-    text-align: center;
-    padding: 1rem;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-}
-
-/* Table specific styles */
-.visuals-table-container {
-    overflow-x: auto;
-    margin-top: 2rem;
-}
-
-.visuals-table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: white;
-    box-shadow: var(--shadow);
-}
-
-.visuals-table th,
-.visuals-table td {
-    padding: 1rem;
-    text-align: left;
-    border-bottom: 1px solid #dee2e6;
-}
-
-.visuals-table th {
-    background-color: var(--primary-color);
-    color: white;
-}
-
-.search-container {
-    margin: 2rem 0;
-}
-
-#searchBox {
-    width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    font-size: 1rem;
-}
-
-/* Lineage view specific styles */
-.slicer {
+    padding: 1rem 2rem;
     margin-bottom: 2rem;
 }
 
-.slicer select {
-    padding: 0.5rem;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    font-size: 1rem;
-    width: 300px;
-}
-
-.legend {
-    display: flex;
-    gap: 2rem;
-    margin-bottom: 1rem;
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.legend-color-box {
-    width: 20px;
-    height: 20px;
-    border-radius: 4px;
-}
-
-.lineage-table {
-    margin-top: 2rem;
-    width: 100%;
-    border-collapse: collapse;
-    background-color: white;
-    box-shadow: var(--shadow);
-}
-
-.lineage-table th,
-.lineage-table td {
-    padding: 0.75rem;
-    text-align: left;
-    border-bottom: 1px solid #dee2e6;
-}
-
-.lineage-table th {
-    background-color: var(--primary-color);
+.navbar a {
     color: white;
+    text-decoration: none;
+    margin-right: 1.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.navbar a:hover,
+.navbar a.active {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Upload section styles */
@@ -247,6 +98,81 @@ body {
     margin-top: 0.5rem;
 }
 
+/* Cards */
+.card-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card h2 {
+    color: var(--primary-color);
+    margin-top: 0;
+}
+
+.button {
+    display: inline-block;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.button:hover {
+    background-color: var(--secondary-color);
+}
+
+/* Tables */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.data-table th,
+.data-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.data-table th {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.data-table tr:hover {
+    background-color: rgba(0, 120, 212, 0.05);
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+    padding: 2rem;
+    background-color: var(--primary-color);
+    color: white;
+    margin-top: 4rem;
+}
+
+/* Upload progress */
 .upload-progress {
     display: none;
     margin-top: 1rem;
