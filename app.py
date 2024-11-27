@@ -50,6 +50,10 @@ def upload_file():
             db.session.add(model)
             db.session.commit()
             
+            # Generate and store embeddings
+            from utils.nlp_processor import store_embeddings
+            store_embeddings(model.id, json.dumps(model_data))
+            
             return jsonify({'success': True, 'data': model_data})
         except Exception as e:
             db.session.rollback()
