@@ -1001,6 +1001,7 @@ dependencies = [
     { name = "langchain-openai" },
     { name = "openai" },
     { name = "psycopg2-binary" },
+    { name = "pydantic" },
     { name = "spacy" },
 ]
 
@@ -1014,6 +1015,7 @@ requires-dist = [
     { name = "langchain-openai", specifier = ">=0.2.10" },
     { name = "openai", specifier = ">=1.55.2" },
     { name = "psycopg2-binary", specifier = ">=2.9.10" },
+    { name = "pydantic", specifier = ">=2.10.2" },
     { name = "spacy", specifier = ">=3.8.2" },
 ]
 
