@@ -2,7 +2,7 @@ import os
 from flask import Flask, render_template, request, jsonify
 from utils.database import db
 from utils.nlp_processor import process_query
-from utils.powerbi_parser import parse_bim_file, parse_report_file
+from utils.powerbi_parser import DataProcessor
 from models import PowerBIModel
 import json
 
@@ -37,10 +37,11 @@ def upload_file():
     if file and allowed_file(file.filename):
         try:
             content = file.read().decode('utf-8')
+            data_processor = DataProcessor()
             if file.filename.endswith('.bim'):
-                model_data = parse_bim_file(content)
+                model_data = data_processor.parse_bim_file(content)
             else:
-                model_data = parse_report_file(content)
+                model_data = data_processor.parse_report_file(content)
             
             # Create PowerBIModel instance
             model = PowerBIModel(
