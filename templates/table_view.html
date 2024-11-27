@@ -1,45 +1,105 @@
-<!-- templates/table_view.html -->
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power BI Visuals Explorer - Table View</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='table.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='responsive.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="nav-logo">Power BI Explorer</div>
+            <div class="nav-links">
+                <a href="/" class="nav-link"><i class="fas fa-home"></i> Home</a>
+                <a href="/table-view" class="nav-link active"><i class="fas fa-table"></i> Visual Fields</a>
+                <a href="/lineage-view" class="nav-link"><i class="fas fa-project-diagram"></i> Data Lineage</a>
+                <a href="/dax-expressions" class="nav-link"><i class="fas fa-code"></i> DAX Explorer</a>
+                <a href="/source-explorer" class="nav-link"><i class="fas fa-database"></i> Source Explorer</a>
+                <a href="/unused-measures" class="nav-link"><i class="fas fa-broom"></i> Unused Measures</a>
+                
+            </div>
+        </div>
+    </nav>
 
-{% block title %}Visual Fields Table{% endblock %}
+    <div class="container">
+        <h1>Power BI Visuals Table</h1>
+        
+        <div class="search-container">
+            <div class="search-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="search" id="searchBox" placeholder="Search visuals, fields, or filters...">
+            </div>
+        </div>
 
-{% block content %}
-    <h1>Power BI Visuals Table</h1>
+        <div class="action-buttons">
+            <button class="action-btn" onclick="exportToExcel()">
+                <i class="fas fa-file-excel"></i> Export to Excel
+            </button>
+            <button class="action-btn" onclick="toggleColumnSelector()">
+                <i class="fas fa-columns"></i> Show/Hide Columns
+            </button>
+        </div>
 
-    <!-- Search Box -->
-    <div class="search-container">
-        <input type="search" id="searchBox" placeholder="Search...">
-    </div>
+        <div id="columnSelector" class="column-selector hidden">
+            <!-- Will be populated dynamically -->
+        </div>
 
-    <!-- Table Container -->
-    <div class="visuals-table-container">
-        <table id="visualsTable" class="visuals-table">
-            <thead>
-                <tr>
-                    <th>Page</th>
-                    <th>Visual Type</th>
-                    <th>Visual Name</th>
-                    <th>Fields Used</th>
-                    <th>Filter Fields</th>
-                    <th>VC Objects</th>
-                    <th>Visual Objects</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in table_data %}
-                {% if row[3] %}
-                <tr>
-                    {% for cell in row %}
-                    <td>{{ cell }}</td>
+        <div class="table-container">
+            <table id="visuals-table">
+                <thead>
+                    <tr>
+                        <th class="sortable" onclick="sortTable(0)">
+                            <i class="fas fa-file-alt"></i>Page
+                            <i class="fas fa-sort"></i>
+                        </th>
+                        <th class="sortable" onclick="sortTable(1)">
+                            <i class="fas fa-chart-bar"></i>Visual Type
+                            <i class="fas fa-sort"></i>
+                        </th>
+                        <th class="sortable" onclick="sortTable(2)">
+                            <i class="fas fa-tag"></i>Visual Name
+                            <i class="fas fa-sort"></i>
+                        </th>
+                        <th class="sortable" onclick="sortTable(3)">
+                            <i class="fas fa-list"></i>Fields Used
+                            <i class="fas fa-sort"></i>
+                        </th>
+                        <th class="sortable" onclick="sortTable(4)">
+                            <i class="fas fa-filter"></i>Filter Fields
+                            <i class="fas fa-sort"></i>
+                        </th>
+                        <th class="sortable" onclick="sortTable(5)">
+                            <i class="fas fa-cube"></i>VC Objects
+                            <i class="fas fa-sort"></i>
+                        </th>
+                        <th class="sortable" onclick="sortTable(6)">
+                            <i class="fas fa-cubes"></i>Visual Objects
+                            <i class="fas fa-sort"></i>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in table_data %}
+                    {% if row %}
+                    <tr>
+                        {% for cell in row %}
+                        <td class="text-ellipsis">{{ cell }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endif %}
                     {% endfor %}
-                </tr>
-                {% endif %}
-                {% endfor %}
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </div>
-{% endblock %}
-
-{% block scripts %}
-    <script src="{{ url_for('static', filename='js/table_view_search.js') }}"></script>
-{% endblock %}
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="{{ url_for('static', filename='table_view.js') }}"></script>
+</body>
+    
+</html>

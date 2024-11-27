@@ -1,74 +1,68 @@
-<!-- templates/unused_measures.html -->
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
 
-{% block title %}Unused Measures{% endblock %}
-
-{% block head %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unused Measures - Power BI Visuals Explorer</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <!-- Include FontAwesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-{% endblock %}
+</head>
 
-{% block content %}
-    <!-- Back to Home Button -->
-    <a href="/"><button class="button-back">Back to Home</button></a>
+<body>
+    <div class="container">
+        <a href="/"><button class="button-back">Back to Home</button></a>
+        <h1>Unused Measures</h1>
+        <p>Below is a list of measures that are not used in any visual components of your report, along with a C# script
+            to delete them in Tabular Editor.</p>
 
-    <h1>Unused Measures</h1>
-    <p>Below is a list of measures that are not used in any visual components of your report, along with a C# script to delete them in Tabular Editor.</p>
-
-    {% if unused_measures %}
-    <!-- List of Unused Measures -->
-    <div class="measures-list-container">
-        <ul id="unused-measures-list">
-            {% for measure in unused_measures %}
-            <li>{{ measure }}</li>
-            {% endfor %}
-        </ul>
-    </div>
-
-    <!-- C# Script Generation -->
-    <div class="script-generation-container">
-        <h2>Tabular Editor Deletion Script</h2>
-        <p>You can copy the following script and run it in Tabular Editor to delete the unused measures:</p>
-        <div class="code-container">
-            <pre id="deletion-script"><code class="language-csharp">
-// C# script for Tabular Editor
-var unusedMeasures = new List<string> {
-    {% for measure in unused_measures %}
-    "{{ measure }}"{% if not loop.last %}, {% endif %}
-    {% endfor %}
-};
-
-foreach (var measureName in unusedMeasures)
-{
-    var measure = Model.Tables.SelectMany(t => t.Measures).FirstOrDefault(m => m.Name == measureName);
-    if (measure != null)
-    {
-        measure.Name = "." + measure.Name; // Prepend a dot to the measure name
-    }
-}
-            </code></pre>
-            <button class="copy-button" onclick="copyScriptToClipboard()"><i class="fas fa-copy"></i> Copy to Clipboard</button>
+        <!-- Check if unused measures list is empty -->
+        {% if unused_measures %}
+        <!-- List of Unused Measures -->
+        <div class="measures-list-container">
+            <ul id="unused-measures-list">
+                {% for measure in unused_measures %}
+                <li>{{ measure }}</li>
+                {% endfor %}
+            </ul>
         </div>
-    </div>
-    {% else %}
-    <!-- Display a message if no unused measures are found -->
-    <p>No unused measures found. Your report seems to be using all defined measures efficiently.</p>
-    {% endif %}
-{% endblock %}
 
-{% block scripts %}
-    <!-- Include Prism.js for syntax highlighting -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/prism.min.js"></script>
-    <!-- Include the C# language component for Prism.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/components/prism-csharp.min.js"></script>
+        <!-- C# Script Generation -->
+        <div class="script-generation-container">
+            <h2>Tabular Editor Deletion Script</h2>
+            <p>You can copy the following script and run it in Tabular Editor to delete the unused measures:</p>
+            <pre id="deletion-script">
+                // C# script for Tabular Editor
+                var unusedMeasures = new List&lt;string&gt; {
+                    {% for measure in unused_measures %}
+                    "{{ measure }}"{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                };
+                
+                foreach (var measureName in unusedMeasures)
+                {
+                    var measure = Model.Tables.SelectMany(t => t.Measures).FirstOrDefault(m => m.Name == measureName);
+                    if (measure != null)
+                    {
+                        measure.Name = "." + measure.Name; // Prepend a dot to the measure name
+                    }
+                }
+    </pre>
+            <button onclick="copyToClipboard()">Copy to Clipboard</button>
+        </div>
+        {% else %}
+        <!-- Display a message if no unused measures are found -->
+        <p>No unused measures found. Your report seems to be using all defined measures efficiently.</p>
+        {% endif %}
+    </div>
     <!-- Include FontAwesome for icons -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
-    <!-- JavaScript function to copy the script to clipboard -->
     <script>
-        function copyScriptToClipboard() {
-            var scriptElement = document.getElementById('deletion-script').innerText;
+        function copyToClipboard() {
+            var script = document.getElementById('deletion-script').innerText;
             var textArea = document.createElement('textarea');
-            textArea.value = scriptElement;
+            textArea.value = script;
             document.body.appendChild(textArea);
             textArea.select();
             document.execCommand('copy');
@@ -76,4 +70,6 @@ foreach (var measureName in unusedMeasures)
             alert('Script copied to clipboard!');
         }
     </script>
-{% endblock %}
+</body>
+
+</html>

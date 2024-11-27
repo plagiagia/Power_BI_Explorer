@@ -1,69 +1,127 @@
-<!-- templates/index.html -->
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
 
-{% block title %}Home - Power BI Visuals Explorer{% endblock %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power BI Visuals Explorer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='responsive.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
 
-{% block content %}
-    <div class="upload-section">
-        <h2>Upload Your Power BI Files</h2>
-        <p>Drag and drop your .bim or .json files here, or click to select</p>
-        <div class="upload-area" id="upload-area">
-            <input type="file" id="file-input" class="file-input" accept=".bim,.json,.tsv" multiple>
-            <div class="upload-content">
-                <i class="fas fa-cloud-upload-alt"></i>
-                <p>Drop files here or click to browse</p>
-                <p class="file-types">Supported files: .bim, .json, .tsv</p>
-            </div>
-            <div class="upload-progress" id="upload-progress">
-                <div class="progress-bar"></div>
-                <div class="progress-text">0%</div>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="nav-logo">Power BI Explorer</div>
+            <div class="nav-links">
+                <a href="/" class="nav-link"><i class="fas fa-home"></i> Home</a>
+                <a href="/table-view" class="nav-link"><i class="fas fa-table"></i> Visual Fields</a>
+                <a href="/lineage-view" class="nav-link"><i class="fas fa-project-diagram"></i> Data Lineage</a>
+                <a href="/dax-expressions" class="nav-link"><i class="fas fa-code"></i> DAX Explorer</a>
+                <a href="/source-explorer" class="nav-link"><i class="fas fa-database"></i> Source Explorer</a>
+                <a href="/unused-measures" class="nav-link"><i class="fas fa-broom"></i> Unused Measures</a>
             </div>
         </div>
-        <div id="upload-status" class="upload-status"></div>
+    </nav>
+
+    <div class="index-page">
+        <h1>Power BI Report Explorer</h1>
+        <div class="card-container">
+            <!-- Visual Fields Card -->
+            <div class="card">
+                <h2><i class="fas fa-table"></i> Visual Fields Table</h2>
+                <p>Get a detailed table view of the fields used in each visual component of your report, making it easier to
+                    manage and understand your data structure.</p>
+                <a href="/table-view" class="button">
+                    <i class="fas fa-arrow-right"></i>
+                    <span>Explore Visual Fields</span>
+                </a>
+            </div>
+
+            <!-- Data Lineage Card -->
+            <div class="card">
+                <h2><i class="fas fa-project-diagram"></i> Data Lineage Diagram</h2>
+                <p>Visualize how measures and columns connect across your report with an interactive data lineage diagram.
+                    Understand dependencies and relationships.</p>
+                <a href="/lineage-view" class="button">
+                    <i class="fas fa-arrow-right"></i>
+                    <span>View Data Lineage</span>
+                </a>
+            </div>
+
+            <!-- DAX Explorer Card -->
+            <div class="card">
+                <h2><i class="fas fa-code"></i> DAX Explorer</h2>
+                <p>Explore and analyze your DAX formulas and calculations. Understand the logic behind your measures and
+                    calculated columns.</p>
+                <a href="/dax-expressions" class="button">
+                    <i class="fas fa-arrow-right"></i>
+                    <span>Explore DAX Formulas</span>
+                </a>
+            </div>
+
+            <!-- Source Explorer Card -->
+            <div class="card">
+                <h2><i class="fas fa-database"></i> Source Explorer</h2>
+                <p>Examine and understand the M queries that form the foundation of your report's data sources. Optimize your
+                    data loading process.</p>
+                <a href="/source-explorer" class="button">
+                    <i class="fas fa-arrow-right"></i>
+                    <span>Explore M Queries</span>
+                </a>
+            </div>
+
+            <div class="upload-section">
+                <form id="uploadForm" class="upload-form">
+                    <div class="upload-container">
+                        <input type="file" id="fileInput" accept=".tsv,.json,.bim" required>
+                        <button type="submit" class="upload-button">
+                            <i class="fas fa-upload"></i> Upload File
+                        </button>
+                    </div>
+                    <div id="uploadStatus"></div>
+                </form>
+            </div>
+
+            <!-- Unused Measures Card -->
+            <div class="card">
+                <h2><i class="fas fa-broom"></i> Unused Measures</h2>
+                <p>Identify and review measures that aren't currently used in any visual components. Clean up your report and
+                    improve performance.</p>
+                <a href="/unused-measures" class="button">
+                    <i class="fas fa-arrow-right"></i>
+                    <span>Find Unused Measures</span>
+                </a>
+            </div>
+        </div>
     </div>
 
-    <h1>Welcome to Power BI Visuals Explorer</h1>
-    <p>Explore and analyze your Power BI reports with ease.</p>
+    <!-- Optional JavaScript -->
+    <script>
+        // Add smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
 
-    <!-- Card Container -->
-    <div class="card-container">
-        <!-- Card 1: Visual Fields Table -->
-        <div class="card">
-            <h2>Visual Fields Table</h2>
-            <p>Get a comprehensive view of all the fields used across visuals in your report.</p>
-            <a href="/table-view" class="button">Explore</a>
-        </div>
+        // Add active state to current navigation link
+        const currentLocation = location.pathname;
+        document.querySelectorAll('.nav-link').forEach(link => {
+            if (link.getAttribute('href') === currentLocation) {
+                link.classList.add('active');
+            }
+        });
+    </script>
+</body>
 
-        <!-- Card 2: Data Lineage Diagram -->
-        <div class="card">
-            <h2>Data Lineage Diagram</h2>
-            <p>Visualize relationships between measures and columns to understand dependencies.</p>
-            <a href="/lineage-view" class="button">View Diagram</a>
-        </div>
-
-        <!-- Card 3: DAX Explorer -->
-        <div class="card">
-            <h2>DAX Explorer</h2>
-            <p>Browse and analyze DAX formulas with syntax highlighting and copy functionality.</p>
-            <a href="/dax-expressions" class="button">Browse DAX</a>
-        </div>
-
-        <!-- Card 4: Source Explorer -->
-        <div class="card">
-            <h2>Source Explorer</h2>
-            <p>Examine the M queries that form your report's data sources.</p>
-            <a href="/source-explorer" class="button">Explore Sources</a>
-        </div>
-
-        <!-- Card 5: Unused Measures -->
-        <div class="card">
-            <h2>Unused Measures</h2>
-            <p>Identify measures not used in any visuals for optimization.</p>
-            <a href="/unused-measures" class="button">Find Unused Measures</a>
-        </div>
-    </div>
-{% endblock %}
-
-{% block scripts %}
-    <script src="{{ url_for('static', filename='js/upload.js') }}"></script>
-{% endblock %}
+</html>

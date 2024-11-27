@@ -1,211 +1,42 @@
-:root {
-    --primary-color: #0078d4;
-    --secondary-color: #00b7c3;
-    --background-color: #f8f9fa;
-    --text-color: #252525;
-    --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Base styles */
-body {
-    font-family: 'Segoe UI', sans-serif;
-    background-color: var(--background-color);
-    color: var(--text-color);
-    margin: 0;
-    padding: 0;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-}
-
-/* Navigation */
-.navbar {
-    background-color: var(--primary-color);
-    box-shadow: var(--shadow);
-    padding: 1rem 2rem;
-    margin-bottom: 2rem;
-}
-
-.navbar a {
-    color: white;
-    text-decoration: none;
-    margin-right: 1.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    transition: background-color 0.3s ease;
-}
-
-.navbar a:hover,
-.navbar a.active {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-/* Upload section styles */
 .upload-section {
-    margin-bottom: 3rem;
-    background-color: white;
+    margin: 2rem auto;
+    max-width: 600px;
+}
+
+.upload-form {
+    background: #fff;
     padding: 2rem;
     border-radius: 8px;
-    box-shadow: var(--shadow);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.upload-area {
-    border: 2px dashed var(--primary-color);
-    border-radius: 8px;
-    padding: 2rem;
-    text-align: center;
-    position: relative;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background-color: rgba(0, 120, 212, 0.05);
+.upload-container {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
 }
 
-.upload-area:hover {
-    background-color: rgba(0, 120, 212, 0.1);
-}
-
-.upload-area.highlight {
-    background-color: rgba(0, 120, 212, 0.15);
-    border-color: var(--secondary-color);
-}
-
-.file-input {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    opacity: 0;
-    cursor: pointer;
-}
-
-.upload-content {
-    pointer-events: none;
-}
-
-.upload-content i {
-    font-size: 3rem;
-    color: var(--primary-color);
-    margin-bottom: 1rem;
-}
-
-.file-types {
-    color: #6c757d;
-    font-size: 0.9rem;
-    margin-top: 0.5rem;
-}
-
-/* Cards */
-.card-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    margin-top: 2rem;
-}
-
-.card {
-    background-color: white;
-    border-radius: 8px;
-    padding: 1.5rem;
-    box-shadow: var(--shadow);
-    transition: transform 0.2s ease;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-}
-
-.card h2 {
-    color: var(--primary-color);
-    margin-top: 0;
-}
-
-.button {
-    display: inline-block;
-    background-color: var(--primary-color);
+.upload-button {
+    background: #4CAF50;
     color: white;
     padding: 0.5rem 1rem;
+    border: none;
     border-radius: 4px;
-    text-decoration: none;
-    transition: background-color 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-.button:hover {
-    background-color: var(--secondary-color);
-}
-
-/* Tables */
-.data-table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: var(--shadow);
-}
-
-.data-table th,
-.data-table td {
-    padding: 1rem;
-    text-align: left;
-    border-bottom: 1px solid #dee2e6;
-}
-
-.data-table th {
-    background-color: var(--primary-color);
-    color: white;
-}
-
-.data-table tr:hover {
-    background-color: rgba(0, 120, 212, 0.05);
-}
-
-/* Footer */
-.footer {
-    text-align: center;
-    padding: 2rem;
-    background-color: var(--primary-color);
-    color: white;
-    margin-top: 4rem;
-}
-
-/* Upload progress */
-.upload-progress {
-    display: none;
+#uploadStatus {
     margin-top: 1rem;
+    padding: 0.5rem;
 }
 
-.progress-bar {
-    height: 4px;
-    background-color: var(--primary-color);
-    width: 0;
-    transition: width 0.3s ease;
+#uploadStatus.success {
+    color: #4CAF50;
 }
 
-.progress-text {
-    margin-top: 0.5rem;
-    font-size: 0.9rem;
-    color: var(--primary-color);
-}
-
-.upload-status {
-    margin-top: 1rem;
-    padding: 1rem;
-    border-radius: 4px;
-    display: none;
-}
-
-.upload-status.success {
-    background-color: #d4edda;
-    color: #155724;
-    display: block;
-}
-
-.upload-status.error {
-    background-color: #f8d7da;
-    color: #721c24;
-    display: block;
+#uploadStatus.error {
+    color: #f44336;
 }

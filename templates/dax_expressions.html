@@ -1,66 +1,225 @@
-<!-- templates/dax_expressions.html -->
-{% extends "base.html" %}
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>DAX Explorer - Power BI Assistant</title>
 
-{% block title %}DAX Expressions{% endblock %}
+        <!-- Stylesheets -->
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='base.css') }}"
+        />
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='dax_expressions.css') }}"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/themes/prism-tomorrow.min.css"
+            rel="stylesheet"
+        />
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+    <body>
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <div class="nav-content">
+                <div class="nav-logo">Power BI Explorer</div>
+                <div class="nav-links">
+                    <a href="/" class="nav-link"
+                        ><i class="fas fa-home"></i> Home</a
+                    >
+                    <a href="/table-view" class="nav-link"
+                        ><i class="fas fa-table"></i> Visual Fields</a
+                    >
+                    <a href="/lineage-view" class="nav-link"
+                        ><i class="fas fa-project-diagram"></i> Data Lineage</a
+                    >
+                    <a href="/dax-expressions" class="nav-link active"
+                        ><i class="fas fa-code"></i> DAX Explorer</a
+                    >
+                    <a href="/source-explorer" class="nav-link"
+                        ><i class="fas fa-database"></i> Source Explorer</a
+                    >
+                    <a href="/unused-measures" class="nav-link"
+                        ><i class="fas fa-broom"></i> Unused Measures</a
+                    >
+                </div>
+            </div>
+        </nav>
 
-{% block head %}
-    <!-- Include Prism.js CSS for syntax highlighting -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/themes/prism.min.css">
-    <!-- Include FontAwesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-{% endblock %}
+        <div class="main-content">
+            <div class="content-wrapper">
+                <!-- Header Section -->
+                <div class="page-header">
+                    <h1><i class="fas fa-code"></i> DAX Explorer</h1>
+                    <p>Browse, search, and manage your DAX expressions</p>
+                </div>
 
-{% block content %}
-    <h1>DAX Expressions</h1>
-    <p>Browse and analyze DAX formulas used in your report.</p>
+                <!-- Search Section -->
+                <div class="search-section">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input
+                            type="text"
+                            id="searchInput"
+                            placeholder="Search expressions..."
+                        />
+                    </div>
+                </div>
 
-    <!-- DAX Expressions Table -->
-    <div class="code-table-container">
-        <table class="code-table">
-            <thead>
-                <tr>
-                    <th>Measure Name</th>
-                    <th>DAX Expression</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for label, expression in dax_expressions %}
-                <tr>
-                    <td>{{ label }}</td>
-                    <td>
-                        <div class="code-container">
-                            <pre><code class="language-dax">{{ expression }}</code></pre>
-                            <button class="copy-button" onclick="copyToClipboard(this)"><i class="fas fa-copy"></i> Copy</button>
+                <!-- Quick References -->
+                <div class="quick-ref-section">
+                    <div class="ref-cards">
+                        <a
+                            href="https://learn.microsoft.com/en-us/dax/"
+                            target="_blank"
+                            class="ref-card"
+                        >
+                            <i class="fas fa-book"></i>
+                            <span>Official DAX Guide</span>
+                        </a>
+                        <a
+                            href="https://dax.guide/"
+                            target="_blank"
+                            class="ref-card"
+                        >
+                            <i class="fas fa-compass"></i>
+                            <span>DAX Reference</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Expression Cards -->
+                <div class="expressions-grid">
+                    {% for measure_name, dax_formula in dax_expressions %}
+                    <div class="expression-card">
+                        <div class="card-header">
+                            <div class="header-content">
+                                <div class="complexity-donut">
+                                    <canvas class="donut-chart"></canvas>
+                                    <span class="complexity-score"></span>
+                                </div>
+                                <div class="measure-info">
+                                    <h3>{{ measure_name }}</h3>
+                                    <div class="complexity-details">
+                                        <span class="complexity-label"
+                                            >Complexity Score</span
+                                        >
+                                        <span
+                                            class="complexity-tip"
+                                            title="Based on length, nested functions, and dependencies"
+                                        >
+                                            <i class="fas fa-info-circle"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-actions">
+                                <button
+                                    class="action-btn"
+                                    onclick="copyExpression(this)"
+                                    title="Copy"
+                                >
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button
+                                    class="action-btn"
+                                    onclick="toggleExpand(this)"
+                                    title="Expand"
+                                >
+                                    <i class="fas fa-expand"></i>
+                                </button>
+                            </div>
                         </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-{% endblock %}
+                        <div class="expression-content">
+                            <pre><code class="language-dax">{{ dax_formula }}</code></pre>
+                        </div>
+                        <div class="expression-meta">
+                            <span class="tag">Measure</span>
+                            <span class="last-modified">DAX Expression</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
 
-{% block scripts %}
-    <!-- Include Prism.js for syntax highlighting -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/prism.min.js"></script>
-    <!-- Include Prism.js DAX language component -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/components/prism-dax.min.js"></script>
-    <!-- Include FontAwesome for icons -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
-    <!-- JavaScript function to copy DAX expression to clipboard -->
-    <script>
-        function copyToClipboard(button) {
-            var codeElement = button.parentElement.querySelector('code');
-            var textArea = document.createElement('textarea');
-            textArea.value = codeElement.textContent;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            button.innerHTML = '<i class="fas fa-check"></i> Copied';
-            setTimeout(function () {
-                button.innerHTML = '<i class="fas fa-copy"></i> Copy';
-            }, 2000);
-        }
-    </script>
-{% endblock %}
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="header-content">
+                        <div class="complexity-donut">
+                            <canvas class="modal-donut-chart"></canvas>
+                            <span class="complexity-score"></span>
+                        </div>
+                        <div class="measure-info">
+                            <h3 id="modal-title"></h3>
+                            <div class="complexity-details">
+                                <span class="complexity-label"
+                                    >Complexity Score</span
+                                >
+                                <span
+                                    class="complexity-tip"
+                                    title="Based on length (30%), function count (40%), and nesting level (30%)"
+                                >
+                                    <i class="fas fa-info-circle"></i>
+                                </span>
+                            </div>
+                            <div class="complexity-metrics">
+                                <span
+                                    >Length:
+                                    <span id="length-score">0</span>%</span
+                                >
+                                <span
+                                    >Functions:
+                                    <span id="function-score">0</span>%</span
+                                >
+                                <span
+                                    >Nesting:
+                                    <span id="nesting-score">0</span>%</span
+                                >
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button
+                            class="action-btn"
+                            onclick="copyModalExpression()"
+                            title="Copy"
+                        >
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button
+                            class="action-btn"
+                            onclick="closeModal()"
+                            title="Close"
+                        >
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <!-- Content will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Scripts -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/components/prism-dax.min.js"></script>
+        <script src="{{ url_for('static', filename='dax_explorer.js') }}"></script>
+    </body>
+</html>

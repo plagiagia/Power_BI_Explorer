@@ -1,66 +1,251 @@
-<!-- templates/source_explorer.html -->
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power BI Explorer - Source Explorer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='source_explorer.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='responsive.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="nav-logo">Power BI Explorer</div>
+            <div class="nav-links">
+                <a href="/" class="nav-link"><i class="fas fa-home"></i> Home</a>
+                <a href="/table-view" class="nav-link"><i class="fas fa-table"></i> Visual Fields</a>
+                <a href="/lineage-view" class="nav-link"><i class="fas fa-project-diagram"></i> Data Lineage</a>
+                <a href="/dax-expressions" class="nav-link"><i class="fas fa-code"></i> DAX Explorer</a>
+                <a href="/source-explorer" class="nav-link active"><i class="fas fa-database"></i> Source Explorer</a>
+                <a href="/unused-measures" class="nav-link"><i class="fas fa-broom"></i> Unused Measures</a>
+            </div>
+        </div>
+    </nav>
 
-{% block title %}Source Explorer{% endblock %}
+    <main class="main-content">
+        <div class="content-wrapper">
+            <div class="page-header">
+                <h1><i class="fas fa-database"></i> Source Explorer</h1>
+                <p>Browse and analyze your Power BI data sources</p>
+            </div>
 
-{% block head %}
-    <!-- Include Prism.js CSS for syntax highlighting -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/themes/prism.min.css">
-    <!-- Include FontAwesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-{% endblock %}
+            <div class="view-controls">
+                <button class="view-btn active" data-view="table">
+                    <i class="fas fa-table"></i> Table View
+                </button>
+                <button class="view-btn" data-view="lineage">
+                    <i class="fas fa-project-diagram"></i> Lineage View
+                </button>
+            </div>
 
-{% block content %}
-    <h1>Source Explorer</h1>
-    <p>Explore the M queries that form the foundation of your report's data sources.</p>
+            <div class="search-section">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search sources...">
+                </div>
+            </div>
 
-    <!-- M Queries Table -->
-    <div class="code-table-container">
-        <table class="code-table">
-            <thead>
-                <tr>
-                    <th>Query Name</th>
-                    <th>M Query</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for query in m_queries_info %}
-                <tr>
-                    <td>{{ query.table_name }}</td>
-                    <td>
-                        <div class="code-container">
-                            <pre><code class="language-powerquery">{{ query.m_query }}</code></pre>
-                            <button class="copy-button" onclick="copyToClipboard(this)"><i class="fas fa-copy"></i> Copy</button>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-{% endblock %}
+            <div id="tableView" class="view-content active">
+                <div class="table-container">
+                    <table id="source-table">
+                        <thead>
+                            <tr>
+                                <th class="sortable" onclick="sortTable(0)">
+                                    Table Name
+                                    <i class="fas fa-sort"></i>
+                                </th>
+                                <th class="sortable" onclick="sortTable(1)">
+                                    M Query
+                                    <i class="fas fa-sort"></i>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for query_info in m_queries_info %}
+                            <tr>
+                                <td>{{ query_info.table_name }}</td>
+                                <td class="query-cell">
+                                    <div class="code-container">
+                                        <button class="copy-btn" onclick="copyCode(this)" title="Copy code">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                        <pre><code class="language-powerquery">{{ query_info.m_query }}</code></pre>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-{% block scripts %}
-    <!-- Include Prism.js for syntax highlighting -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/prism.min.js"></script>
-    <!-- Include Prism.js Power Query component -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/components/prism-powerquery.min.js"></script>
-    <!-- Include FontAwesome for icons -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
-    <!-- JavaScript function to copy M query to clipboard -->
+            <div id="lineageView" class="view-content">
+                <div id="networkContainer"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-powerquery.min.js"></script>
+    
     <script>
-        function copyToClipboard(button) {
-            var codeElement = button.parentElement.querySelector('code');
-            var textArea = document.createElement('textarea');
-            textArea.value = codeElement.textContent;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            button.innerHTML = '<i class="fas fa-check"></i> Copied';
-            setTimeout(function () {
-                button.innerHTML = '<i class="fas fa-copy"></i> Copy';
-            }, 2000);
+        // Initialize network data
+        const nodes = new vis.DataSet({{ nodes|tojson|safe }});
+        const edges = new vis.DataSet({{ edges|tojson|safe }});
+
+        // Network configuration
+        const container = document.getElementById('networkContainer');
+        const data = { nodes, edges };
+        const options = {
+            nodes: {
+                shape: 'box',
+                margin: 10,
+                font: {
+                    size: 14,
+                    color: '#ffffff'
+                },
+                color: {
+                    background: '#2563eb',
+                    border: '#1e40af',
+                    highlight: {
+                        background: '#3b82f6',
+                        border: '#1e40af'
+                    }
+                }
+            },
+            edges: {
+                arrows: 'to',
+                color: {
+                    color: '#64748b',
+                    highlight: '#94a3b8'
+                },
+                width: 2
+            },
+            physics: {
+                enabled: true,
+                hierarchicalRepulsion: {
+                    nodeDistance: 200
+                },
+                solver: 'hierarchicalRepulsion'
+            },
+            layout: {
+                hierarchical: {
+                    enabled: true,
+                    direction: 'LR',
+                    sortMethod: 'directed'
+                }
+            }
+        };
+
+        // Initialize network
+        const network = new vis.Network(container, data, options);
+
+        // View switching functionality
+        const viewBtns = document.querySelectorAll('.view-btn');
+        const views = document.querySelectorAll('.view-content');
+
+        viewBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const viewType = btn.dataset.view;
+                
+                // Update buttons
+                viewBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Update views
+                views.forEach(view => {
+                    view.classList.remove('active');
+                    if (view.id === `${viewType}View`) {
+                        view.classList.add('active');
+                    }
+                });
+
+                // Refresh network if switching to lineage view
+                if (viewType === 'lineage') {
+                    network.fit();
+                }
+            });
+        });
+
+        // Copy functionality
+        const COPY_ICON = "fa-copy";
+        const COPIED_ICON = "fa-check";
+        const COPY_TIMEOUT = 2000;
+
+        function copyCode(button) {
+            const codeElement = button.parentElement.querySelector('code');
+            const icon = button.querySelector('i');
+
+            navigator.clipboard.writeText(codeElement.textContent)
+                .then(() => {
+                    icon.classList.remove(COPY_ICON);
+                    icon.classList.add(COPIED_ICON);
+                    showToast("Code copied to clipboard!");
+
+                    setTimeout(() => {
+                        icon.classList.remove(COPIED_ICON);
+                        icon.classList.add(COPY_ICON);
+                    }, COPY_TIMEOUT);
+                })
+                .catch(err => {
+                    showToast("Failed to copy code", "error");
+                });
         }
+
+        function showToast(message, type = "success") {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="fas ${type === "success" ? "fa-check" : "fa-exclamation-circle"}"></i>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tableRows = document.querySelectorAll('#source-table tbody tr');
+
+            tableRows.forEach(row => {
+                const tableName = row.cells[0].textContent.toLowerCase();
+                const mQuery = row.cells[1].textContent.toLowerCase();
+                const matches = tableName.includes(searchTerm) || mQuery.includes(searchTerm);
+                row.style.display = matches ? '' : 'none';
+            });
+        });
+
+        // Sort functionality
+        function sortTable(columnIndex) {
+            const table = document.getElementById("source-table");
+            const tbody = table.querySelector("tbody");
+            const rows = Array.from(tbody.querySelectorAll("tr"));
+            
+            rows.sort((a, b) => {
+                const aValue = a.cells[columnIndex].textContent.toLowerCase();
+                const bValue = b.cells[columnIndex].textContent.toLowerCase();
+                return aValue.localeCompare(bValue);
+            });
+            
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        // Initialize Prism
+        document.addEventListener("DOMContentLoaded", function() {
+            Prism.highlightAll();
+        });
     </script>
-{% endblock %}
+</body>
+</html>

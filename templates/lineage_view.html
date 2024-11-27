@@ -1,67 +1,93 @@
-<!-- templates/lineage_view.html -->
-{% extends "base.html" %}
-
-{% block title %}Data Lineage Diagram{% endblock %}
-
-{% block head %}
-    <!-- Include Vis Network CSS -->
-    <link href="https://unpkg.com/vis-network@9.1.2/styles/vis-network.min.css" rel="stylesheet" type="text/css" />
-    <!-- Include Prism CSS (optional, if needed for code highlighting) -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism.min.css" rel="stylesheet" />
-{% endblock %}
-
-{% block content %}
-    <h1>Measure Dependencies Diagram</h1>
-
-    <div class="slicer">
-        <label for="measureSelect">Select a Measure:</label>
-        <select id="measureSelect">
-            <option value="">All Measures</option>
-            <!-- Options will be populated dynamically -->
-        </select>
-    </div>
-
-    <div class="legend">
-        <div class="legend-item">
-            <div class="legend-color-box" style="background-color: #f1c83b;"></div>
-            <div class="legend-text">Parent Measure</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power BI Explorer - Lineage View</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='table.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='responsive.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='lineage.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="nav-logo">Power BI Explorer</div>
+            <div class="nav-links">
+                <a href="/" class="nav-link"><i class="fas fa-home"></i> Home</a>
+                <a href="/table-view" class="nav-link"><i class="fas fa-table"></i> Visual Fields</a>
+                <a href="/lineage-view" class="nav-link active"><i class="fas fa-project-diagram"></i> Data Lineage</a>
+                <a href="/dax-expressions" class="nav-link"><i class="fas fa-code"></i> DAX Explorer</a>
+                <a href="/source-explorer" class="nav-link"><i class="fas fa-database"></i> Source Explorer</a>
+                <a href="/unused-measures" class="nav-link"><i class="fas fa-broom"></i> Unused Measures</a>
+            </div>
         </div>
-        <div class="legend-item">
-            <div class="legend-color-box" style="background-color: #23c4a7;"></div>
-            <div class="legend-text">Final Measure</div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="page-header">
+                <h1><i class="fas fa-project-diagram"></i> Measure Dependencies Diagram</h1>
+            </div>
+
+            <div class="content-wrapper">
+                <div class="controls-section">
+                    <div class="slicer-container">
+                        <label for="measureSelect">Select a Measure:</label>
+                        <select id="measureSelect" class="select-style">
+                            <option value="">All Measures</option>
+                        </select>
+                    </div>
+
+                    <div id="legend" class="legend-container">
+                        <div class="legend-item">
+                            <span class="legend-color-box" style="background-color: #f1c83b;"></span>
+                            <span>Parent Measure</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color-box" style="background-color: #23c4a7;"></span>
+                            <span>Final Measure</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color-box" style="background-color: #ADD8E6;"></span>
+                            <span>Column Node</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="network-section">
+                    <div id="mynetwork" class="network-container"></div>
+                </div>
+
+                <div class="table-section">
+                    <div class="table-container">
+                        <table id="lineageTable" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-calculator"></i> Measure</th>
+                                    <th><i class="fas fa-level-up-alt"></i> Parent</th>
+                                    <th><i class="fas fa-level-down-alt"></i> Child</th>
+                                    <th><i class="fas fa-columns"></i> Columns</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data rows will be inserted here by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="legend-item">
-            <div class="legend-color-box" style="background-color: #ADD8E6;"></div>
-            <div class="legend-text">Column Node</div>
-        </div>
-    </div>
+    </main>
 
-    <div id="mynetwork" style="width: 100%; height: 600px; border: 1px solid lightgray;"></div>
-
-    <!-- Table to display lineage data -->
-    <table id="lineageTable" class="lineage-table">
-        <thead>
-            <tr>
-                <th>Parent Measure</th>
-                <th>Child Measure</th>
-                <th>Column</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Data rows will be inserted here by JavaScript -->
-        </tbody>
-    </table>
-{% endblock %}
-
-{% block scripts %}
-    <!-- Include Vis Network JS -->
-    <script src="https://unpkg.com/vis-network@9.1.2/standalone/umd/vis-network.min.js"></script>
-    <!-- Data for the network diagram -->
     <script>
-        // Declare the nodes and edges data for the network diagram
-        const nodesArray = {{ nodes | tojson | safe }};
-        const edgesArray = {{ edges | tojson | safe }};
+        var nodesArray = {{ nodes | tojson | safe }};
+        var edgesArray = {{ edges | tojson | safe }};
     </script>
-    <!-- Include your custom JavaScript for the lineage view -->
     <script src="{{ url_for('static', filename='lineage_view.js') }}"></script>
-{% endblock %}
+</body>
+</html>

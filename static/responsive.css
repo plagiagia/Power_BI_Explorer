@@ -1,0 +1,49 @@
+/* responsive.css */
+@media (max-width: 1200px) {
+    .container {
+        max-width: 98%;
+        padding: 10px;
+    }
+
+    .table-container {
+        margin: 1rem -10px;
+        border-radius: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .home-container {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+    }
+
+    .nav-content {
+        flex-direction: column;
+        padding: 1rem;
+    }
+
+    .nav-links {
+        flex-direction: column;
+        width: 100%;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .nav-link {
+        width: 100%;
+        text-align: center;
+    }
+
+    .search-wrapper {
+        max-width: 100%;
+    }
+
+    .action-buttons {
+        flex-wrap: wrap;
+    }
+
+    .table-stats {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}

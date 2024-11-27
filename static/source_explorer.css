@@ -1,0 +1,331 @@
+/* source_explorer.css */
+.main-content {
+    padding: 2rem;
+    min-height: calc(100vh - var(--navbar-height));
+    background: var(--dark-bg);
+    color: var(--light-text);
+}
+
+.content-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.page-header {
+    margin-top: 2rem;
+}
+
+.page-header h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.page-header p {
+    color: var(--text-secondary);
+}
+
+.search-section {
+    margin: 2rem 0;
+}
+
+.search-box {
+    position: relative;
+    max-width: 400px;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border-radius: 8px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--light-text);
+    font-size: 1rem;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.search-box i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+}
+
+.table-container {
+    background: var(--card-bg);
+    border-radius: 12px;
+    overflow: auto;
+    box-shadow: var(--shadow-lg);
+    margin-top: 1rem;
+    max-width: 100%;
+}
+
+#source-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+#source-table thead {
+    background: var(--card-bg);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+#source-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--light-text);
+    border-bottom: 2px solid var(--border-color);
+    cursor: pointer;
+    background-color: var(--card-bg);
+}
+
+#source-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+    word-wrap: break-word;
+}
+
+/* Column widths */
+#source-table td:first-child {
+    width: 200px;
+}
+
+#source-table td:last-child {
+    width: calc(100% - 200px);
+}
+
+/* Query cell styling */
+.query-cell {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.query-cell pre {
+    margin: 0;
+    padding: 1rem;
+    background: var(--card-bg) !important;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    white-space: pre-wrap !important;
+    word-break: break-word;
+    max-width: 100%;
+}
+
+/* Code container and copy button styling */
+.code-container {
+    position: relative;
+}
+
+.copy-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+    z-index: 3;
+    opacity: 0;
+}
+
+.code-container:hover .copy-btn {
+    opacity: 1;
+}
+
+.copy-btn:hover {
+    background: var(--card-hover);
+    color: var(--light-text);
+    transform: translateY(-1px);
+}
+
+/* Code styling */
+.query-cell code {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    white-space: pre-wrap !important;
+    word-break: break-word;
+}
+
+/* Table row hover effect */
+#source-table tbody tr:hover {
+    background-color: var(--card-hover);
+}
+
+/* Sort icon styling */
+.sortable i {
+    margin-left: 0.5rem;
+    font-size: 0.8rem;
+    opacity: 0.5;
+}
+
+.sortable:hover i {
+    opacity: 1;
+}
+
+/* Toast notification */
+.toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: var(--card-bg);
+    color: var(--light-text);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transform: translateY(100%);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.toast.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.toast i {
+    color: #10B981;
+}
+
+/* View controls */
+.view-controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.view-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--light-text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.view-btn:hover {
+    background: var(--card-hover);
+}
+
+.view-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+/* View content */
+.view-content {
+    display: none;
+    height: 600px;
+}
+
+.view-content.active {
+    display: block;
+}
+
+/* Network container */
+#networkContainer {
+    width: 100%;
+    height: 100%;
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+/* Ensure proper sizing for both views */
+#tableView {
+    height: auto;
+}
+
+#lineageView {
+    min-height: 600px;
+}
+
+/* Add these CSS variables if they're not already defined in base.css */
+:root {
+    --card-hover: rgba(255, 255, 255, 0.05);
+    --card-bg: #1e1e1e;
+    --border-color: #333;
+    --primary: #2563eb;
+    --light-text: #fff;
+    --text-secondary: #9ca3af;
+    --shadow-lg: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --dark-bg: #121212;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .content-wrapper {
+        padding: 1rem;
+    }
+
+    #source-table td:first-child {
+        width: 150px;
+    }
+
+    #source-table td:last-child {
+        width: calc(100% - 150px);
+    }
+
+    .search-box {
+        max-width: 100%;
+    }
+}
+
+/* Scrollbar styling */
+.table-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: var(--card-bg);
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+/* Prism overrides */
+:not(pre) > code[class*="language-"],
+pre[class*="language-"] {
+    background: transparent;
+}
+
+code[class*="language-"],
+pre[class*="language-"] {
+    text-shadow: none;
+}
