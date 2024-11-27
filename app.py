@@ -7,7 +7,9 @@ from models import PowerBIModel, Query, FileEmbedding
 import json
 import re
 
-app = Flask(__name__)
+app = Flask(__name__, 
+            static_url_path='',
+            static_folder='static')
 
 # Configure database
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
@@ -22,18 +24,18 @@ MODEL_JSON_PATH = os.path.join(DATA_DIR, 'model.json')
 
 def get_data_processor():
     if 'data_processor' not in g:
-        data_processor = DataProcessor()
         if os.path.exists(REPORT_JSON_PATH):
-            data_processor.process_json()
-        g.data_processor = data_processor
+            g.data_processor = DataProcessor(REPORT_JSON_PATH)
+        else:
+            g.data_processor = None
     return g.data_processor
 
 def get_lineage_view_processor():
     if 'lineage_view_processor' not in g:
-        lineage_view_processor = LineageView()
         if os.path.exists(MEASURE_DEPENDENCIES_TSV_PATH):
-            lineage_view_processor.process_lineage_data()
-        g.lineage_view_processor = lineage_view_processor
+            g.lineage_view_processor = LineageView(MEASURE_DEPENDENCIES_TSV_PATH)
+        else:
+            g.lineage_view_processor = None
     return g.lineage_view_processor
 
 @app.teardown_appcontext
